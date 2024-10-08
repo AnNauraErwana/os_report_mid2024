@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{pythonhighlight}
 
 \title{Operating System Course Report - First Half of the Semester}
 \author{B class}
@@ -78,8 +79,117 @@ It explains how these algorithms are used to allocate CPU time to processes.
 \subsection{Process Creation and Termination}
 Details how processes are created and terminated by the operating system, including:
 \begin{itemize}
-    \item Process spawning
-    \item Process termination conditions
+    \item \textit{Process spawning}
+    \item \textit{Process termination conditions}
+    \subsubsection{Sumber Daya Proses}
+    \begin{itemize}
+        \item Alokasi Memori
+        
+        Setiap proses memerlukan memori untuk menyimpan data dan instruksi yang akan dijalankannya. Sistem operasi bertanggung jawab untuk mengalokasikan memori ini kepada proses dan memastikan bahwa proses lain tidak mengakses memori yang dialokasikan secara ilegal.
+        
+        \begin{itemize}
+            \item Jenis memori yang dialokasikan:
+                \begin{itemize}
+                    \item \textbf{Stack:} Digunakan untuk menyimpan variabel lokal dan melacak fungsi yang dipanggil selama eksekusi program.
+                    \item \textbf{Heap:} Menyediakan memori dinamis untuk aplikasi, digunakan saat proses memerlukan memori yang dialokasikan secara dinamis selama runtime.
+                    \item \textbf{Segmen Kode (Text Segment):} Menyimpan instruksi yang akan dieksekusi oleh CPU. Ini adalah bagian dari memori yang bersifat read-only, sehingga mencegah modifikasi terhadap instruksi program.
+                \end{itemize}
+        \end{itemize}
+        
+        \item Penjadwalan Waktu CPU
+        
+        Sistem operasi mengatur bagaimana dan kapan setiap proses dapat menggunakan CPU. Karena jumlah CPU terbatas dan banyak proses yang berjalan secara bersamaan, sistem operasi menggunakan mekanisme penjadwalan untuk mengalokasikan waktu CPU secara adil dan efisien.
+        
+        \begin{itemize}
+            \item Jenis Penjadwalan Waktu CPU:
+                \begin{itemize}
+                    \item \textbf{Preemptive Scheduling:} Sistem operasi dapat menghentikan proses yang sedang berjalan dan memberikan CPU kepada proses lain yang lebih prioritas.
+                    \item \textbf{Non-Preemptive Scheduling:} Proses diberikan CPU sampai selesai atau secara sukarela melepaskan CPU, baru setelah itu sistem operasi memberikan CPU ke proses lain.
+                \end{itemize}
+        \end{itemize}
+        
+        \item Pengaturan File \textit{Descriptors}
+        
+        File descriptor adalah integer unik yang diberikan oleh sistem operasi untuk merujuk ke file, socket, atau perangkat yang dibuka oleh proses. Proses menggunakan file descriptors untuk melakukan operasi I/O seperti membaca, menulis, atau mengelola file.
+        
+        \begin{itemize}
+            \item Fungsi File \textit{Descriptor}:
+                \begin{itemize}
+                    \item \textbf{Akses File:} File \textit{descriptors} digunakan oleh proses untuk membaca, menulis, atau melakukan operasi lainnya pada file.
+                    \item \textbf{Komunikasi Antar-Proses (IPC):} File \textit{descriptors} digunakan dalam komunikasi antar-proses seperti socket atau pipe untuk mentransfer data antar proses.
+                    \item \textbf{Manajemen Sumber Daya:} File \textit{descriptors} membantu sistem operasi melacak dan mengelola sumber daya seperti file terbuka, socket, atau perangkat yang digunakan oleh suatu proses.
+                \end{itemize}
+        \end{itemize}
+        
+    \end{itemize}
+
+    \subsubsection{Terminasi Paksa oleh Proses Lain (Tidak Sukarela)}
+    \begin{itemize}
+        \item \textbf{Sinyal Kill}
+        \begin{itemize}
+            \item Sinyal kill adalah perintah yang digunakan dalam sistem operasi untuk menghentikan proses yang sedang berjalan. Meskipun namanya terdengar drastis, sinyal ini tidak selalu berarti menghentikan proses secara paksa; ada berbagai jenis sinyal yang dapat dikirim.
+            \item \textit{Contoh Sinyal:}
+            \begin{itemize}
+                \item \textbf{SIGTERM:} Sinyal ini memberi tahu proses untuk berhenti dengan cara yang teratur. Proses dapat menangani sinyal ini dengan melakukan pembersihan sebelum keluar.
+                \item \textbf{SIGKILL:} Sinyal ini menghentikan proses secara paksa dan tidak dapat diabaikan atau ditangani oleh proses. Ini digunakan ketika proses tidak merespons permintaan untuk berhenti.
+            \end{itemize}
+            \item \textit{Penggunaan Sinyal Kill:}  
+            Sinyal ini biasanya digunakan ketika proses tidak merespons, macet, atau berperilaku tidak sesuai. Misalnya, jika aplikasi grafis tidak merespons, pengguna dapat menggunakan perintah \texttt{kill} untuk menghentikannya.
+        \end{itemize}
+        \item \textbf{Timeout}
+        \begin{itemize}
+            \item Timeout adalah mekanisme di mana sistem operasi menetapkan batas waktu tertentu untuk proses. Jika proses tidak menyelesaikan tugasnya dalam jangka waktu yang ditentukan, sistem operasi akan menghentikannya.
+            \item \textit{Contoh Penggunaan:}  
+            Dalam sistem waktu nyata atau dalam lingkungan penjadwalan pekerjaan, jika sebuah proses tidak merespons dalam waktu tertentu, sistem operasi dapat mengakhiri proses tersebut untuk mencegah masalah dalam pengelolaan sumber daya.
+            \item \textit{Pentingnya Timeout:}  
+            Timeout mencegah satu proses dari penggunaan sumber daya sistem yang berlebihan, yang bisa mengakibatkan penurunan kinerja untuk proses lain.
+        \end{itemize}
+    \end{itemize}
+
+    \subsubsection{Proses Orphan atau Proses Zombie}
+    \begin{figure}[h]
+		\centering
+		\includegraphics[width=1\textwidth]{asset/Process.png}
+		\label{fig:gambar}
+    \end{figure}
+    \begin{itemize}
+        \item \textbf{Proses Orphan}
+        \begin{itemize}
+            \item Proses Orphan adalah proses anak yang tetap berjalan setelah proses induknya berakhir. Ketika proses induk mati, proses anak menjadi yatim, tetapi sistem operasi tidak langsung menghapusnya.
+            \item \textit{Pengelolaan Proses Orphan:}  
+            Dalam sistem berbasis Unix, proses Orphan diadopsi oleh proses init (PID 1). Proses init bertugas untuk mengelola proses orphan dan memastikan bahwa semua sumber daya yang dialokasikan untuk proses anak dibebaskan saat proses tersebut berakhir.
+        \end{itemize}
+        \item \textbf{Proses Zombie}
+        \begin{itemize}
+            \item Proses zombie adalah proses yang telah selesai eksekusi tetapi masih ada dalam tabel proses karena proses induknya belum mengambil status keluar (exit status)nya. Proses ini tidak aktif, tetapi masih ada dalam sistem.
+            \item Proses zombie muncul karena sistem operasi menyimpan informasi tentang proses yang telah selesai sehingga proses induk dapat mendapatkan status keluar untuk melakukan pembersihan yang diperlukan.
+            \item \textit{Menghapus Proses Zombie:}  
+            Setelah proses induk menggunakan \texttt{wait()} atau \texttt{waitpid()} untuk mengambil status keluar dari proses anaknya, sistem operasi dapat menghapus entri proses zombie dari tabel proses.
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Tahapan dalam Terminasi Proses}
+    \begin{itemize}
+        \item \textbf{Sinyal untuk Terminasi}  
+        Proses dapat berakhir dengan cara alami atau menerima sinyal untuk terminasi. Jika menerima sinyal, proses akan melaksanakan handler (jika ada) atau menghentikan eksekusinya.
+        
+        \item \textbf{Pembersihan Sumber Daya}  
+        Setelah proses menerima sinyal terminasi atau selesai eksekusi, sistem operasi akan mulai mereklamasi semua sumber daya yang digunakan oleh proses tersebut. Ini termasuk:
+        \begin{itemize}
+            \item \textit{Memori:} Menghapus alokasi memori yang digunakan oleh stack, heap, dan segmen kode.
+            \item \textit{Deskriptor File:} Menutup semua file yang dibuka oleh proses untuk mencegah kebocoran sumber daya.
+            \item \textit{Perangkat I/O:} Mengembalikan kontrol atas perangkat I/O yang digunakan oleh proses.
+        \end{itemize}
+        
+        \item \textbf{Penghapusan Process Control Block (PCB)}  
+        Setiap proses memiliki PCB yang menyimpan informasi penting tentang proses, termasuk status, prioritas, dan informasi penggunaan sumber daya. Setelah proses dibersihkan, PCB dihapus dari tabel proses untuk membebaskan ruang dan menghilangkan informasi tentang proses tersebut.
+        
+        \item \textbf{Pemberitahuan kepada Proses Induk}  
+        Dalam sistem berbasis Unix, setelah proses anak selesai, proses induknya diberi tahu melalui sinyal \texttt{SIGCHLD}. Proses induk dapat menangani sinyal ini dan memanggil \texttt{wait()} atau \texttt{waitpid()} untuk mengambil status keluar dari proses anak. Ini memungkinkan proses induk untuk melakukan pembersihan yang diperlukan dan memastikan bahwa tidak ada proses zombie yang tertinggal.
+    \end{itemize}
+    \item {Silberschatz, A., Galvin, P. B., & Gagne, G. (2018). Operating system concepts (10th ed.). Wiley.}
+    \item {Almaunah. (n.d.). Mengidentifikasi Proses Sistem Operasi. Fakultas Komputer, Universitas  Mitra Indonesia.}
+    \end{itemize}
 \end{itemize}
 
 \subsection{Introduction to Threads}
@@ -88,6 +198,15 @@ This section introduces the concept of threads and their relation to processes, 
     \item Single-threaded vs. multi-threaded processes
     \item Benefits of multithreading
 \end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{/Users/khawaritzmi/Unhas/os_report_mid2024/b_class/asset/example.png}  % Sesuaikan nama file dan ukurannya
+    \caption{Ini adalah gambar contoh dari multithreading.}
+    \label{fig:contoh_gambar}
+\end{figure}
+
+Seperti yang terlihat pada Gambar \ref{fig:contoh_gambar}, inilah cara menambahkan gambar dengan keterangan.
 
 \subsection{File Systems}
 File systems provide a way for the operating system to store, retrieve, and manage data. This section explains:
@@ -130,12 +249,94 @@ Virtualization allows multiple operating systems to run concurrently on a single
 \section{Assignments and Practical Work}
 \subsection{Assignment 1: Process Scheduling}
 Students were tasked with implementing various process scheduling algorithms (e.g., FCFS, SJN, and RR) and comparing their performance under different conditions.
+\subsubsection{Group 1}
+\begin{python}
+    class Process:
+    def __init__(self, pid, arrival_time, burst_time):
+        self.pid = pid
+        self.arrival_time = arrival_time
+        self.burst_time = burst_time
+        self.completion_time = 0
+        self.turnaround_time = 0
+        self.waiting_time = 0
+\end{python}
+
+\begin{table}[htbp] % Optional: For floating position
+    \centering
+    \begin{tabular}{|c|c|c|} % Defines number of columns and alignment (c = center, l = left, r = right). '|' creates vertical lines.
+    \hline
+    Header 1 & Header 2 & Header 3 \\ % Column headers
+    \hline
+    Row 1, Column 1 & Row 1, Column 2 & Row 1, Column 3 \\ % First row of data
+    \hline
+    Row 2, Column 1 & Row 2, Column 2 & Row 2, Column 3 \\ % Second row of data
+    \hline
+    \end{tabular}
+    \caption{Your table caption} % Optional: For adding a caption
+    \label{tab:your_label} % Optional: For cross-referencing the table
+\end{table}
 
 \subsection{Assignment 2: Deadlock Handling}
 In this assignment, students were asked to simulate different deadlock scenarios and explore various prevention methods.
 
 \subsection{Assignment 3: Multithreading and Amdahl's Law}
 This assignment involved designing a multithreading scenario to solve a computationally intensive problem. Students then applied **Amdahl's Law** to calculate the theoretical speedup of the program as the number of threads increased.
+
+\subsubsection{group 1}
+\subsubsection{group 2}
+\subsubsection{group 3}
+\subsubsection{group 4}
+\subsubsection{group 5}
+\subsubsection{group 6}
+Buatlah sebuah program Python untuk menghitung nilai Fibonacci ke-40 menggunakan multithreading. Setelah itu, implementasikan Amdahl's Law untuk menghitung speedup teoretis dengan berbagai jumlah thread.
+Jawaban:
+
+\begin{python}
+import threading
+import time
+
+# Fungsi untuk menghitung Fibonacci secara rekursif
+def hitung_fibonacci(angka):
+    if angka <= 1:
+        return angka
+    else:
+        return hitung_fibonacci(angka-1) + hitung_fibonacci(angka-2)
+
+# Fungsi untuk mengukur waktu eksekusi
+def jalankan_threads(jumlah_threads, angka_fibonacci):
+    threads = []
+    
+    waktu_mulai = time.time()
+    
+    for i in range(jumlah_threads):
+        thread = threading.Thread(target=hitung_fibonacci, args=(angka_fibonacci,))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+    
+    waktu_selesai = time.time()
+    return waktu_selesai - waktu_mulai
+
+# Implementasi Amdahl's Law
+def hitung_speedup_amdahl(persentase_paralel, jumlah_threads):
+    return 1 / ((1 - persentase_paralel) + (persentase_paralel / jumlah_threads))
+
+# Main program
+if __name__ == "__main__":
+    angka_fibonacci = 40  # Fibonacci ke-40
+    persentase_paralel = 0.95  # Estimasi paralelisme
+    daftar_threads = [1, 2, 4, 8]  # Daftar jumlah thread yang akan diuji
+    
+    for jumlah_threads in daftar_threads:
+        waktu_eksekusi = jalankan_threads(jumlah_threads, angka_fibonacci)
+        speedup_teoretis = hitung_speedup_amdahl(persentase_paralel, jumlah_threads)
+        
+        print(f"\nJumlah Threads: {jumlah_threads}")
+        print(f"Waktu Eksekusi: {waktu_eksekusi:.4f} detik")
+        print(f"Speedup Teoretis (Amdahl's Law): {speedup_teoretis:.4f}")
+\end{python}
 
 \subsection{Assignment 4: Simple Command-Line Interface (CLI) for User Interface Management}
 Students were tasked with creating a simple **CLI** for user interface management. The CLI should support basic commands such as file manipulation (creating, listing, and deleting files), process management, and system status reporting.
